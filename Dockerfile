@@ -14,11 +14,33 @@
 #
 ARG ELIXIR_VERSION=1.14.0
 ARG OTP_VERSION=24.3
-ARG DEBIAN_VERSION=bullseye-20210902-slim
+ARG DEBIAN_VERSION=bullseye-20210902-slim 
+ARG TAG_ELIXIR=1.14
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
+
+# start a new stage for dev mode 
+FROM elixir:${TAG_ELIXIR} as dev
+
+RUN apt-get update && \ 
+apt-get install -y postgresql-client build-essential inotify-tools apt-utils
+
+WORKDIR /app
+
+COPY mix.exs .
+COPY mix.lock .
+
+# install hex + rebar
+RUN mix local.hex --force && \
+  mix local.rebar --force
+
+#CMD mix deps.get && mix phx.server
+CMD mix setup && mix phx.server
+
+
+# start a new builder stage
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies

@@ -1,0 +1,42 @@
+version: '3.6'
+services:
+  mintacoin_db:
+    image: postgres:14-alpine
+    container_name: mintacoin_db
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mintacoin_dev
+    networks:
+      - mintacoin
+  mintacoin_api:
+    container_name: mintacoin_api
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .:/app
+    ports:
+      - 4000:4000
+    environment:
+      - CONTAINER_HOST=mintacoin_api
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB_LOCAL=mintacoin_dev
+      - POSTGRES_DB_TEST=mintacoin_test
+      - POSTGRES_PORT=5432
+      - POSTGRES_HOST=mintacoin_db
+    depends_on:
+      - mintacoin_db
+    networks:
+      - mintacoin
+networks:
+  mintacoin:
+    driver: bridge
+    name: mintacoin
+volumes:
+  pgdata:
