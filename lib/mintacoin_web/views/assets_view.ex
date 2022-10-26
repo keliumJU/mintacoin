@@ -24,6 +24,7 @@ defmodule MintacoinWeb.AssetsView do
     %{status: 200, data: %{addresses: addresses}}
   end
 
+  #probabli create a generic error for show the errors or only one render error.json
   def render("error.json", %{error: %{status: status, code: code, detail: detail}}),
     do: %{status: status, code: code, detail: detail}
 end

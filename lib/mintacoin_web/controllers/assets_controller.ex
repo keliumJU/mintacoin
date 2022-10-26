@@ -59,6 +59,8 @@ defmodule MintacoinWeb.AssetsController do
       {400, "The introduced address doesn't exist or doesn't have associated the blockchain"}
   }
 
+  def error_msg(:blockchain_not_found), do: {400, "invalid"}
+
   @default_blockchain_name Blockchain.default()
 
   @spec create(conn :: conn(), params :: params()) :: conn() | {:error, error()}

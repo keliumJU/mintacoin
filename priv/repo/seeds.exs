@@ -10,6 +10,7 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 alias Mintacoin.{Repo, Blockchain}
+import Ecto.Query
 
 network = Application.get_env(:mintacoin, :blockchains_network, :testnet)
 

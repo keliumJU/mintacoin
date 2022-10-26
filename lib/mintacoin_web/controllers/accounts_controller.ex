@@ -60,20 +60,30 @@ defmodule MintacoinWeb.AccountsController do
   }
 
   @spec create(conn :: conn(), params :: params()) :: conn() | {:error, error()}
-  def create(%{assigns: %{network: network}} = conn, %{"blockchain" => blockchain}) do
-    blockchain
-    |> Blockchains.retrieve(network)
-    |> create_account()
-    |> handle_response(conn, :created, "account.json")
+  def create(conn, %{"blockchain" => blockchain}) do
+    %{assigns: %{network: network}} = conn
+    #blockchain
+    #|> Blockchains.retrieve(network)
+    #|> create_account()
+    #|> handle_response(conn, :created, "account.json")
+
+    with {:ok, blockchain2} <- Blockchains.retrieve(blockchain, network) ,
+         {:ok, account} <- Accounts.create(blockchain2) do
+          handle_response({:ok, account}, conn, :created, "account.json")
+    end
+
   end
 
   def create(_conn, _params), do: {:error, :bad_request}
 
   @spec recover(conn :: conn(), params :: params()) :: {:ok, resource()} | {:error, error()}
   def recover(conn, %{"address" => address, "seed_words" => seed_words}) do
-    address
-    |> Accounts.recover_signature(seed_words)
-    |> handle_response(conn, :ok, "signature.json")
+    #address
+    #|> Accounts.recover_signature(seed_words)
+    #|> handle_response(conn, :ok, "signature.json")
+    with {:ok, resource} <- Accounts.recover_signature(address, seed_words) do
+      handle_response({:ok, resource}, conn, :ok, "signature.json")
+    end
   end
 
   def recover(_conn, _params), do: {:error, :bad_request}
@@ -167,7 +177,7 @@ defmodule MintacoinWeb.AccountsController do
 
   defp handle_response({:error, resource}, _conn, _status, _template) do
     {status, message} = Map.get(@errors, resource, {400, "Accounts Controller Error"})
-
+    
     {:error, %{status: status, detail: message, code: resource}}
   end
 end

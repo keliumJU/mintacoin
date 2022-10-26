@@ -15,6 +15,19 @@ defmodule MintacoinWeb.FallbackController do
   @supported_errors [:not_found, :bad_request]
   @error_templates [bad_request: :"400", not_found: :"404"]
 
+  def call(conn, {:error, error}) do 
+    #{status, message} = Map.get(@create_errors, error, {400, "Accounts Controller Error"})
+    IO.inspect("this is error---: #{error}")
+    #IO.inspect("status: #{status}")
+    #IO.inspect("msg: #{message}")
+    conn
+    |> IO.inspect(label: "entro aqui")
+    |> put_status(400)
+    |> put_view(ErrorView)
+    |> render("400.json",%{status: error, code: 400})
+
+  end
+
   # This clause handles errors returned by Ecto's insert/update/delete.
   @spec call(conn :: conn(), {:error, error()}) :: conn()
   def call(conn, {:error, %Changeset{} = changeset}) do
@@ -38,4 +51,5 @@ defmodule MintacoinWeb.FallbackController do
     |> put_status(status)
     |> render("error.json", error: error)
   end
+
 end
