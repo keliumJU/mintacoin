@@ -29,6 +29,7 @@ defmodule MintacoinWeb.AccountsView do
     %{status: 200, data: assets_data}
   end
 
+  #move after test the new code
   def render("error.json", %{error: %{status: status, code: code, detail: detail}}),
     do: %{status: status, code: code, detail: detail}
 

@@ -40,6 +40,7 @@ defmodule Mintacoin.Accounts do
           | :invalid_seed_words
           | :encryption_error
           | :asset_not_found
+          | :blockchain_not_found
 
   @spec create(Mintacoin.Blockchain.t()) :: {:ok, Account.t()} | {:error, error()}
   def create(%Blockchain{id: blockchain_id}) do
@@ -57,6 +58,8 @@ defmodule Mintacoin.Accounts do
     end
   end
 
+  def create(_blockchain), do: {:error, :blockchain_not_found}
+  
   @spec create_db_record :: {:ok, Account.t()} | {:error, error()}
   def create_db_record do
     signature_fields = Keypair.build_signature_fields()
