@@ -9,9 +9,15 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
-
 alias Mintacoin.{Repo, Blockchain}
 
 network = Application.get_env(:mintacoin, :blockchains_network, :testnet)
 
-Repo.insert!(%Blockchain{name: Blockchain.default(), network: network})
+run_seeds = fn
+  false -> Repo.insert!(%Blockchain{name: Blockchain.default(), network: network})
+  true -> :ok
+end
+
+Blockchain
+|> Repo.exists?()
+|> run_seeds.()

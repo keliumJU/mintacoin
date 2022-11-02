@@ -2,14 +2,13 @@ import Config
 
 # Configure your database
 config :mintacoin, Mintacoin.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "mintacoin_dev",
+  database: System.get_env("POSTGRES_DB_LOCAL", "mintacoin_dev"),
+  username: System.get_env("POSTGRES_USER", "postgres"),
+  password: System.get_env("POSTGRES_PASSWORD", "postgres"),
+  hostname: System.get_env("POSTGRES_HOST", "localhost"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
-
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -19,7 +18,7 @@ config :mintacoin, Mintacoin.Repo,
 config :mintacoin, MintacoinWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
