@@ -8,7 +8,7 @@ defmodule Mintacoin.BlockchainTx do
   import Ecto.Changeset
 
   alias Ecto.Changeset
-  alias Mintacoin.{Account, Asset, AssetHolder, Blockchain, Wallet}
+  alias Mintacoin.{Account, Asset, AssetHolder, Blockchain, Payment, Wallet}
 
   @type t :: %__MODULE__{
           blockchain_id: Blockchain.t(),
@@ -16,6 +16,7 @@ defmodule Mintacoin.BlockchainTx do
           wallet_id: Wallet.t(),
           asset_id: Asset.t(),
           asset_holder_id: AssetHolder.t(),
+          payment_id: Payment.t(),
           successful: boolean(),
           tx_id: String.t(),
           tx_hash: String.t(),
@@ -30,6 +31,7 @@ defmodule Mintacoin.BlockchainTx do
     belongs_to(:wallet, Wallet, type: :binary_id)
     belongs_to(:asset, Asset, type: :binary_id)
     belongs_to(:asset_holder, AssetHolder, type: :binary_id)
+    belongs_to(:payment, Payment, type: :binary_id)
 
     field(:successful, :boolean, default: false)
     field(:tx_id, :string)
@@ -60,6 +62,7 @@ defmodule Mintacoin.BlockchainTx do
       :wallet_id,
       :asset_id,
       :asset_holder_id,
+      :payment_id,
       :successful,
       :tx_id,
       :tx_hash,
@@ -72,5 +75,6 @@ defmodule Mintacoin.BlockchainTx do
     |> foreign_key_constraint(:account_id)
     |> foreign_key_constraint(:asset_id)
     |> foreign_key_constraint(:asset_holder_id)
+    |> foreign_key_constraint(:payment_id)
   end
 end

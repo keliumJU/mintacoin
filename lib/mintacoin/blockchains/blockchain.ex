@@ -9,7 +9,7 @@ defmodule Mintacoin.Blockchain do
   import EctoEnum
 
   alias Ecto.Changeset
-  alias Mintacoin.{AssetHolder, BlockchainTx, Wallet}
+  alias Mintacoin.{AssetHolder, BlockchainTx, Payment, Wallet}
 
   @type name :: String.t()
   @type network :: Network
@@ -28,6 +28,7 @@ defmodule Mintacoin.Blockchain do
     has_many(:wallets, Wallet)
     has_many(:blockchain_txs, BlockchainTx)
     has_many(:asset_holders, AssetHolder)
+    has_many(:payments, Payment)
 
     timestamps()
   end

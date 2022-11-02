@@ -57,4 +57,10 @@ defmodule Mintacoin.BlockchainTxs do
     query = from(btx in BlockchainTx, where: btx.asset_holder_id == ^asset_holder_id)
     {:ok, Repo.all(query)}
   end
+
+  @spec retrieve_by_payment_id(payment_id :: id()) :: {:ok, list(blockchain_tx())}
+  def retrieve_by_payment_id(payment_id) do
+    query = from(btx in BlockchainTx, where: btx.payment_id == ^payment_id)
+    {:ok, Repo.all(query)}
+  end
 end

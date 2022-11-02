@@ -17,6 +17,7 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
     blockchain = insert(:blockchain, %{name: "stellar", network: "mainnet"})
     wallet = insert(:wallet, %{blockchain: blockchain})
     asset = insert(:asset)
+    payment = insert(:payment)
 
     asset_holder =
       insert(:asset_holder, %{
@@ -35,6 +36,7 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
       blockchain: blockchain,
       asset: asset,
       asset_holder: asset_holder,
+      payment: payment,
       blockchain_tx: blockchain_tx,
       tx_id: "7f82fe6ac195e7674f7bdf7a3416683ffd55c8414978c70bf4da08ac64fea129",
       tx_hash: "7f82fe6ac195e7674f7bdf7a3416683ffd55c8414978c70bf4da08ac64fea129",
@@ -51,6 +53,7 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
       blockchain: %{id: blockchain_id},
       asset: %{id: asset_id},
       asset_holder: %{id: asset_holder_id},
+      payment: %{id: payment_id},
       tx_id: tx_id,
       tx_hash: tx_hash,
       tx_timestamp: tx_timestamp,
@@ -62,6 +65,7 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
          blockchain_id: ^blockchain_id,
          asset_id: ^asset_id,
          asset_holder_id: ^asset_holder_id,
+         payment_id: ^payment_id,
          tx_id: ^tx_id,
          tx_hash: ^tx_hash,
          tx_timestamp: ^tx_timestamp,
@@ -72,6 +76,7 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
           blockchain_id: blockchain_id,
           asset_id: asset_id,
           asset_holder_id: asset_holder_id,
+          payment_id: payment_id,
           tx_id: tx_id,
           tx_hash: tx_hash,
           tx_timestamp: tx_timestamp,
@@ -170,6 +175,23 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
           blockchain_id: blockchain_id
         })
     end
+
+    test "when payment_id doesn't exist", %{
+      not_found_uuid: not_found_uuid,
+      blockchain: %{id: blockchain_id}
+    } do
+      {:error,
+       %Changeset{
+         errors: [
+           {:payment_id, {"does not exist", _detail}}
+           | _tail
+         ]
+       }} =
+        BlockchainTxs.create(%{
+          payment_id: not_found_uuid,
+          blockchain_id: blockchain_id
+        })
+    end
   end
 
   describe "update/2" do
@@ -265,6 +287,18 @@ defmodule Mintacoin.Blockchains.BlockchainTxsTest do
 
     test "when asset_holder_id doesn't exist", %{not_found_uuid: not_found_uuid} do
       {:ok, []} = BlockchainTxs.retrieve_by_asset_holder_id(not_found_uuid)
+    end
+  end
+
+  describe "retrieve_by_payment_id/1" do
+    test "with valid asset_holder_id", %{
+      blockchain_tx: %{id: blockchain_tx_id, payment_id: payment_id}
+    } do
+      {:ok, [%{id: ^blockchain_tx_id}]} = BlockchainTxs.retrieve_by_payment_id(payment_id)
+    end
+
+    test "when asset_holder_id doesn't exist", %{not_found_uuid: not_found_uuid} do
+      {:ok, []} = BlockchainTxs.retrieve_by_payment_id(not_found_uuid)
     end
   end
 end
