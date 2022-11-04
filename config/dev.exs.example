@@ -37,6 +37,9 @@ config :mintacoin, blockchains_network: "BLOCKCHAINS_NETWORK"
 # Temporal API Authentication
 config :mintacoin, api_token: "API_TOKEN"
 
+# For Accounts creation
+config :mintacoin, starting_balance: System.get_env("STARTING_BALANCE", "10.0")
+
 # Stellar SDK configuration
 config :stellar_sdk, network: :test
 
