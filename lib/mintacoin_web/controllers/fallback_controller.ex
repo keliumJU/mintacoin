@@ -10,16 +10,18 @@ defmodule MintacoinWeb.FallbackController do
   alias MintacoinWeb.{ChangesetView, ErrorView}
 
   @type conn :: Plug.Conn.t()
-  @type error :: :not_found | :bad_request | map() | Changeset.t()
+  @type error :: :not_found | :bad_request | map() | Changeset.t() | :error
 
   @supported_errors [:not_found, :bad_request]
   @error_templates [bad_request: :"400", not_found: :"404"]
 
-  def call(conn, {:error, error}) do 
+  def call(conn, {:error, error}) do
     #{status, message} = Map.get(@create_errors, error, {400, "Accounts Controller Error"})
     IO.inspect("this is error---: #{error}")
     #IO.inspect("status: #{status}")
     #IO.inspect("msg: #{message}")
+    #IO.puts("this is the errorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
+    #IO.puts(error)
     conn
     |> IO.inspect(label: "entro aqui")
     |> put_status(400)

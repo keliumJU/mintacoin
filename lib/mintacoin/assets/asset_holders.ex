@@ -64,7 +64,7 @@ defmodule Mintacoin.AssetHolders do
 
   @spec retrieve_by_account_id(account_id :: id()) ::
           {:ok, list({asset_holder(), balance()}) | []}
-  def retrieve_by_account_id(account_id) do
+  def retrieve_by_account_id(account_id) when account_id != nil do
     query =
       from(asset_holder in AssetHolder,
         join: balance in Balance,
@@ -78,4 +78,5 @@ defmodule Mintacoin.AssetHolders do
 
     {:ok, Repo.all(query)}
   end
+
 end
