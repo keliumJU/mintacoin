@@ -48,39 +48,23 @@ defmodule MintacoinWeb.AccountsController do
 
   action_fallback MintacoinWeb.FallbackController
 
-  @errors %{
-    blockchain_not_found: {400, "The introduced blockchain doesn't exist"},
-    decoding_error: {400, "The introduced address is invalid"},
-    invalid_address: {400, "The address is invalid"},
-    invalid_seed_words: {400, "The seed words are invalid"},
-    encryption_error: {400, "Error during encryption"},
-    asset_not_found: {400, "The introduced asset doesn't exist"},
-    wallet_not_found:
-      {400, "The introduced address doesn't exist or doesn't have associated the blockchain"}
-  }
-
   @spec create(conn :: conn(), params :: params()) :: conn() | {:error, error()}
   def create(conn, %{"blockchain" => blockchain}) do
     %{assigns: %{network: network}} = conn
-    #blockchain
-    #|> Blockchains.retrieve(network)
-    #|> create_account()
-    #|> handle_response(conn, :created, "account.json")
-
-    with {:ok, blockchain2} <- Blockchains.retrieve(blockchain, network) ,
-         {:ok, account} <- Accounts.create(blockchain2) do
-          handle_response({:ok, account}, conn, :created, "account.json")
+    with {:ok, blockchain_struct} <- Blockchains.retrieve(blockchain, network) ,
+         {:ok, resource} <- create_account({:ok, blockchain_struct}) do
+          handle_response({:ok, resource}, conn, :created, "account.json")
     end
-
   end
 
   def create(_conn, _params), do: {:error, :bad_request}
 
+  @spec create_account({:ok, blockchain()}) :: {status(), resource()}
+  defp create_account({:ok, %Blockchain{} = blockchain}), do: Accounts.create(blockchain)
+  defp create_account({:ok, nil}), do: {:error, :blockchain_not_found}
+
   @spec recover(conn :: conn(), params :: params()) :: {:ok, resource()} | {:error, error()}
   def recover(conn, %{"address" => address, "seed_words" => seed_words}) do
-    #address
-    #|> Accounts.recover_signature(seed_words)
-    #|> handle_response(conn, :ok, "signature.json")
     with {:ok, resource} <- Accounts.recover_signature(address, seed_words) do
       handle_response({:ok, resource}, conn, :ok, "signature.json")
     end
@@ -93,25 +77,25 @@ defmodule MintacoinWeb.AccountsController do
         conn,
         %{"address" => address, "asset_id" => asset_id, "signature" => signature}
       ) do
-    asset =
-      asset_id
-      |> UUID.cast()
-      |> retrieve_asset_and_blockchain()
+    asset = UUID.cast(asset_id)
+    IO.puts("this is asset")
+    IO.inspect(asset)
 
-    asset
-    |> retrieve_wallet(address)
-    |> process_trustline(asset, signature)
-    |> handle_response(conn, :created, "trustline.json")
+    with {:ok, %{asset: asset, blockchain_id: blockchain_id}} <- retrieve_asset_and_blockchain(asset),
+      {:ok, wallet} <- retrieve_wallet({:ok, %{blockchain_id: blockchain_id}}, address),
+      {:ok, resource} <-  process_trustline({:ok, wallet}, {:ok, %{asset: asset}}, signature) do
+        handle_response({:ok, resource}, conn, :created, "trustline.json")
+    end
   end
 
   def create_trustline(_conn, _params), do: {:error, :bad_request}
 
   @spec show_assets(conn :: conn(), params :: params()) :: conn() | {:error, error()}
   def show_assets(conn, %{"address" => address}) do
-    address
-    |> Accounts.retrieve_by_address()
-    |> retrieve_assets()
-    |> handle_response(conn, :ok, "assets.json")
+    account = Accounts.retrieve_by_address(address)
+    with {:ok, resource} <- retrieve_assets(account) do
+      handle_response({:ok, resource}, conn, :ok, "assets.json")
+    end
   end
 
   @spec retrieve_assets(account :: {:ok, account() | nil}) :: {:ok, list()} | {:error, error()}
@@ -126,7 +110,6 @@ defmodule MintacoinWeb.AccountsController do
     case AssetHolders.retrieve_minter_by_asset_id(id) do
       {:ok, %AssetHolder{asset: asset, blockchain_id: blockchain_id}} ->
         {:ok, %{asset: asset, blockchain_id: blockchain_id}}
-
       {:ok, nil} ->
         {:error, :asset_not_found}
     end
@@ -143,7 +126,7 @@ defmodule MintacoinWeb.AccountsController do
     end
   end
 
-  defp retrieve_wallet(error, _address), do: error
+  #defp retrieve_wallet(error, _address), do: error
 
   @spec process_trustline(
           wallet :: {:ok, wallet()} | {:error, error()},
@@ -157,11 +140,7 @@ defmodule MintacoinWeb.AccountsController do
     end
   end
 
-  defp process_trustline(error, _asset, _params), do: error
-
-  @spec create_account({:ok, blockchain()}) :: {status(), resource()}
-  defp create_account({:ok, %Blockchain{} = blockchain}), do: Accounts.create(blockchain)
-  defp create_account({:ok, nil}), do: {:error, :blockchain_not_found}
+  #defp process_trustline(error, _asset, _params), do: error
 
   @spec handle_response(
           {:ok, resource :: resource()} | {:error, error()},
@@ -175,9 +154,4 @@ defmodule MintacoinWeb.AccountsController do
     |> render(template, resource: resource)
   end
 
-  defp handle_response({:error, resource}, _conn, _status, _template) do
-    {status, message} = Map.get(@errors, resource, {400, "Accounts Controller Error"})
-    
-    {:error, %{status: status, detail: message, code: resource}}
-  end
 end

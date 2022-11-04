@@ -29,10 +29,6 @@ defmodule MintacoinWeb.AccountsView do
     %{status: 200, data: assets_data}
   end
 
-  #move after test the new code
-  def render("error.json", %{error: %{status: status, code: code, detail: detail}}),
-    do: %{status: status, code: code, detail: detail}
-
   @spec format_asset(asset_information :: asset_information()) :: formatted_asset_data()
   defp format_asset(
          {%AssetHolder{
