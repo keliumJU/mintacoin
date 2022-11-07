@@ -48,19 +48,6 @@ defmodule MintacoinWeb.AssetsController do
 
   action_fallback MintacoinWeb.FallbackController
 
-  @errors %{
-    blockchain_not_found: {400, "The introduced blockchain doesn't exist"},
-    invalid_supply_format: {400, "The introduced supply format is invalid"},
-    decoding_error: {400, "The signature is invalid"},
-    bad_request: {400, "The body params are invalid"},
-    asset_not_found: {400, "The introduced asset doesn't exist"},
-    encryption_error: {400, "Error during encryption"},
-    wallet_not_found:
-      {400, "The introduced address doesn't exist or doesn't have associated the blockchain"}
-  }
-
-  def error_msg(:blockchain_not_found), do: {400, "invalid"}
-
   @default_blockchain_name Blockchain.default()
 
   @spec create(conn :: conn(), params :: params()) :: conn() | {:error, error()}
@@ -75,34 +62,40 @@ defmodule MintacoinWeb.AssetsController do
       ) do
     blockchain_name = Map.get(params, "blockchain", @default_blockchain_name)
 
-    blockchain_name
-    |> retrieve_blockchain(network)
-    |> retrieve_wallet(address)
-    |> create_asset(params)
-    |> handle_response(conn, :created, "asset.json")
+    with {:ok, blockchain} <- retrieve_blockchain(blockchain_name, network),
+         {:ok, wallet} <- retrieve_wallet({:ok, blockchain}, address),
+         {:ok, resource} <- create_asset({:ok, wallet}, params) do
+      handle_response({:ok, resource}, conn, :created, "asset.json")
+    end
   end
 
   def create(_conn, _params), do: {:error, :bad_request}
 
   @spec show(conn :: conn(), params :: params()) :: conn() | {:error, error()}
   def show(conn, %{"id" => id}) do
-    UUID.cast(id)
-    |> retrieve_asset()
-    |> handle_response(conn, :ok, "show_asset.json")
+    uuid = UUID.cast(id)
+
+    with {:ok, asset} <- retrieve_asset(uuid) do
+      handle_response({:ok, asset}, conn, :ok, "show_asset.json")
+    end
   end
 
   @spec show_issuer(conn :: conn(), params :: params()) :: conn() | {:error, error()}
   def show_issuer(conn, %{"id" => id}) do
-    UUID.cast(id)
-    |> retrieve_issuer()
-    |> handle_response(conn, :ok, "asset_issuer.json")
+    uuid = UUID.cast(id)
+
+    with {:ok, asset_holder} <- retrieve_issuer(uuid) do
+      handle_response({:ok, asset_holder}, conn, :ok, "asset_issuer.json")
+    end
   end
 
   @spec show_accounts(conn :: conn(), params :: params()) :: conn() | {:error, error()}
   def show_accounts(conn, %{"id" => id}) do
-    UUID.cast(id)
-    |> retrieve_accounts()
-    |> handle_response(conn, :ok, "asset_accounts.json")
+    uuid = UUID.cast(id)
+
+    with {:ok, accounts} <- retrieve_accounts(uuid) do
+      handle_response({:ok, accounts}, conn, :ok, "asset_accounts.json")
+    end
   end
 
   @spec retrieve_blockchain(blockchain_name :: blockchain_name(), network :: network()) ::
@@ -124,8 +117,6 @@ defmodule MintacoinWeb.AssetsController do
       _any -> {:error, :wallet_not_found}
     end
   end
-
-  defp retrieve_wallet(error, _address), do: error
 
   @spec retrieve_accounts(uuid_cast :: uuid_cast()) :: {:ok, accounts()} | {:error, error()}
   defp retrieve_accounts({:ok, id}) do
@@ -172,8 +163,6 @@ defmodule MintacoinWeb.AssetsController do
     })
   end
 
-  defp create_asset(error, _params), do: error
-
   @spec handle_response(
           {:ok, resource :: resource()} | {:error, error()},
           conn :: conn(),
@@ -184,14 +173,5 @@ defmodule MintacoinWeb.AssetsController do
     conn
     |> put_status(status)
     |> render(template, resource: resource)
-  end
-
-  defp handle_response({:error, %Changeset{} = changeset}, _conn, _status, _template),
-    do: {:error, changeset}
-
-  defp handle_response({:error, resource}, _conn, _status, _template) do
-    {status, message} = Map.get(@errors, resource, {400, "Accounts Controller Error"})
-
-    {:error, %{status: status, detail: message, code: resource}}
   end
 end

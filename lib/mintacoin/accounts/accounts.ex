@@ -40,7 +40,6 @@ defmodule Mintacoin.Accounts do
           | :invalid_seed_words
           | :encryption_error
           | :asset_not_found
-          | :blockchain_not_found
 
   @spec create(Mintacoin.Blockchain.t()) :: {:ok, Account.t()} | {:error, error()}
   def create(%Blockchain{id: blockchain_id}) do

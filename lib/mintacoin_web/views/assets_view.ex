@@ -23,8 +23,4 @@ defmodule MintacoinWeb.AssetsView do
     addresses = Enum.map(accounts, fn %{address: address} -> address end)
     %{status: 200, data: %{addresses: addresses}}
   end
-
-  #probabli create a generic error for show the errors or only one render error.json
-  def render("error.json", %{error: %{status: status, code: code, detail: detail}}),
-    do: %{status: status, code: code, detail: detail}
 end

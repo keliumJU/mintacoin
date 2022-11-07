@@ -10,25 +10,10 @@ defmodule MintacoinWeb.FallbackController do
   alias MintacoinWeb.{ChangesetView, ErrorView}
 
   @type conn :: Plug.Conn.t()
-  @type error :: :not_found | :bad_request | map() | Changeset.t() | :error
+  @type error :: :not_found | :bad_request | map() | Changeset.t()
 
   @supported_errors [:not_found, :bad_request]
   @error_templates [bad_request: :"400", not_found: :"404"]
-
-  def call(conn, {:error, error}) do
-    #{status, message} = Map.get(@create_errors, error, {400, "Accounts Controller Error"})
-    IO.inspect("this is error---: #{error}")
-    #IO.inspect("status: #{status}")
-    #IO.inspect("msg: #{message}")
-    #IO.puts("this is the errorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
-    #IO.puts(error)
-    conn
-    |> IO.inspect(label: "entro aqui")
-    |> put_status(400)
-    |> put_view(ErrorView)
-    |> render("400.json",%{status: error, code: 400})
-
-  end
 
   # This clause handles errors returned by Ecto's insert/update/delete.
   @spec call(conn :: conn(), {:error, error()}) :: conn()
@@ -47,11 +32,11 @@ defmodule MintacoinWeb.FallbackController do
     |> render(@error_templates[error])
   end
 
-  # This clause handles errors that have a specific response code and will be displayed by the associated view.
-  def call(conn, {:error, %{status: status} = error}) do
+  # This clause handles customized controller errors with code 400
+  def call(conn, {:error, error}) do
     conn
-    |> put_status(status)
-    |> render("error.json", error: error)
+    |> put_status(400)
+    |> put_view(ErrorView)
+    |> render("400.json", %{status: 400, code: error})
   end
-
 end

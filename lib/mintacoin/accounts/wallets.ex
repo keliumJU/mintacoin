@@ -44,9 +44,4 @@ defmodule Mintacoin.Wallets do
 
     {:ok, Repo.one(query)}
   end
-
-  #def retrieve_by_account_address_and_blockchain_id(error, _address), do: error
-
-  def retrieve_by_account_address_and_blockchain_id({:ok, nil}, _address), do:  {:error, :asset_not_found}
-
 end

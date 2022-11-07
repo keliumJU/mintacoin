@@ -274,7 +274,7 @@ defmodule MintacoinWeb.AccountsControllerTest do
 
       %{
         "code" => "decoding_error",
-        "detail" => "The introduced address is invalid",
+        "detail" => "The signature is invalid",
         "status" => 400
       } = json_response(conn, 400)
     end

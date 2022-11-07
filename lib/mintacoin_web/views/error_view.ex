@@ -16,17 +16,18 @@ defmodule MintacoinWeb.ErrorView do
   def render("401.json", %{message: message}),
     do: %{status: :unauthorized, code: 401, detail: message}
 
-  def render("400.json", %{status: status, code: code}),
-    do: %{status: status, code: code, detail: error_msg(status)}
-
   def render("error.json", %{message: message}), do: %{status: :error, message: message}
 
+  def render("400.json", %{status: status, code: code}),
+    do: %{status: status, code: code, detail: error_msg(code)}
+
   defp error_msg(:blockchain_not_found), do: "The introduced blockchain doesn't exist"
-  defp error_msg(:decoding_error), do: "The introduced address is invalid"
+  defp error_msg(:decoding_error), do: "The signature is invalid"
   defp error_msg(:invalid_address), do: "The address is invalid"
   defp error_msg(:invalid_seed_words), do: "The seed words are invalid"
   defp error_msg(:encryption_error), do: "Error during encryption"
   defp error_msg(:asset_not_found), do: "The introduced asset doesn't exist"
-  defp error_msg(:wallet_not_found), do: "The address entered does not exist or does not have the blockchain associated with it"
-  defp error_msg(error), do: "Controller Error"
+  defp error_msg(:wallet_not_found), do: "The introduced address doesn't exist or doesn't have associated the blockchain"
+  defp error_msg(:bad_request), do: "The body params are invalid"
+  defp error_msg(:invalid_supply_format), do: "The introduced supply format is invalid"
 end
