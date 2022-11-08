@@ -175,7 +175,9 @@ defmodule MintacoinWeb.AssetsControllerTest do
       conn = post(conn, Routes.assets_path(conn, :create), %{})
 
       %{
-        "errors" => %{"detail" => "Bad Request"}
+        "code" => "bad_request",
+        "detail" => "The body params are invalid",
+        "status" => 400
       } = json_response(conn, 400)
     end
 

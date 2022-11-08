@@ -41,7 +41,6 @@ defmodule MintacoinWeb.AccountsController do
           | :decoding_error
           | :invalid_address
           | :invalid_seed_words
-          | :encryption_error
           | :asset_not_found
           | :wallet_not_found
           | Changeset.t()
@@ -74,7 +73,6 @@ defmodule MintacoinWeb.AccountsController do
         conn,
         %{"address" => address, "asset_id" => asset_id, "signature" => signature}
       ) do
-
     asset = UUID.cast(asset_id)
 
     with {:ok, %{asset: asset, blockchain_id: blockchain_id}} <-

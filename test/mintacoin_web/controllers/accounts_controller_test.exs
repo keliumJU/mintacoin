@@ -208,7 +208,11 @@ defmodule MintacoinWeb.AccountsControllerTest do
     } do
       conn = post(conn, Routes.accounts_path(conn, :create_trustline, address, asset_id), %{})
 
-      %{"errors" => %{"detail" => "Bad Request"}} = json_response(conn, 400)
+      %{
+        "code" => "bad_request",
+        "detail" => "The body params are invalid",
+        "status" => 400
+      } = json_response(conn, 400)
     end
 
     test "when address doesn't exist", %{

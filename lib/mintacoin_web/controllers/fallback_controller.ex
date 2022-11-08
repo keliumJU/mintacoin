@@ -24,19 +24,19 @@ defmodule MintacoinWeb.FallbackController do
     |> render("error.json", changeset: changeset)
   end
 
-  # This clause handles default errors returned by control actions.
-  def call(conn, {:error, error}) when error in @supported_errors do
-    conn
-    |> put_status(error)
-    |> put_view(ErrorView)
-    |> render(@error_templates[error])
-  end
-
   # This clause handles customized controller errors with code 400
   def call(conn, {:error, error}) do
     conn
     |> put_status(400)
     |> put_view(ErrorView)
     |> render("400.json", %{status: 400, code: error})
+  end
+
+  # This clause handles default errors returned by control actions.
+  def call(conn, {:error, error}) when error in @supported_errors do
+    conn
+    |> put_status(error)
+    |> put_view(ErrorView)
+    |> render(@error_templates[error])
   end
 end

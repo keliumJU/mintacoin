@@ -38,7 +38,6 @@ defmodule Mintacoin.Accounts do
           | :decoding_error
           | :invalid_address
           | :invalid_seed_words
-          | :encryption_error
           | :asset_not_found
 
   @spec create(Mintacoin.Blockchain.t()) :: {:ok, Account.t()} | {:error, error()}

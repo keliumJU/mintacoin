@@ -42,7 +42,6 @@ defmodule MintacoinWeb.AssetsController do
           | :decoding_error
           | :bad_request
           | :asset_not_found
-          | :encryption_error
           | :wallet_not_found
           | Changeset.t()
 

@@ -8,7 +8,7 @@ defmodule Mintacoin.Assets do
 
   @type id :: UUID.t()
   @type changes :: map()
-  @type error :: Changeset.t() | :decoding_error | :encryption_error | :invalid_supply_format
+  @type error :: Changeset.t() | :decoding_error | :invalid_supply_format
   @type asset :: Asset.t()
   @type asset_code :: Asset.code()
   @type asset_supply :: Asset.supply()
