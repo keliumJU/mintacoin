@@ -48,22 +48,20 @@ defmodule MintacoinWeb.AccountsController do
   action_fallback MintacoinWeb.FallbackController
 
   @spec create(conn :: conn(), params :: params()) :: conn() | {:error, error()}
-  def create(conn, %{"blockchain" => blockchain}) do
-    %{assigns: %{network: network}} = conn
-
-    with {:ok, blockchain_struct} <- Blockchains.retrieve(blockchain, network),
-         {:ok, resource} <- create_account({:ok, blockchain_struct}) do
-      handle_response({:ok, resource}, conn, :created, "account.json")
-    end
+  def create(%{assigns: %{network: network}} = conn, %{"blockchain" => blockchain}) do
+    blockchain
+    |> Blockchains.retrieve(network)
+    |> create_account()
+    |> handle_response(conn, :created, "account.json")
   end
 
   def create(_conn, _params), do: {:error, :bad_request}
 
   @spec recover(conn :: conn(), params :: params()) :: {:ok, resource()} | {:error, error()}
   def recover(conn, %{"address" => address, "seed_words" => seed_words}) do
-    with {:ok, resource} <- Accounts.recover_signature(address, seed_words) do
-      handle_response({:ok, resource}, conn, :ok, "signature.json")
-    end
+    address
+    |> Accounts.recover_signature(seed_words)
+    |> handle_response(conn, :ok, "signature.json")
   end
 
   def recover(_conn, _params), do: {:error, :bad_request}
@@ -77,8 +75,8 @@ defmodule MintacoinWeb.AccountsController do
 
     with {:ok, %{asset: asset, blockchain_id: blockchain_id}} <-
            retrieve_asset_and_blockchain(asset),
-         {:ok, wallet} <- retrieve_wallet({:ok, %{blockchain_id: blockchain_id}}, address),
-         {:ok, resource} <- process_trustline({:ok, wallet}, {:ok, %{asset: asset}}, signature) do
+         {:ok, wallet} <- retrieve_wallet(blockchain_id, address),
+         {:ok, resource} <- process_trustline(wallet, asset, signature) do
       handle_response({:ok, resource}, conn, :created, "trustline.json")
     end
   end
@@ -87,11 +85,10 @@ defmodule MintacoinWeb.AccountsController do
 
   @spec show_assets(conn :: conn(), params :: params()) :: conn() | {:error, error()}
   def show_assets(conn, %{"address" => address}) do
-    account = Accounts.retrieve_by_address(address)
-
-    with {:ok, resource} <- retrieve_assets(account) do
-      handle_response({:ok, resource}, conn, :ok, "assets.json")
-    end
+    address
+    |> Accounts.retrieve_by_address()
+    |> retrieve_assets()
+    |> handle_response(conn, :ok, "assets.json")
   end
 
   @spec create_account({:ok, blockchain()}) :: {status(), resource()}
@@ -118,21 +115,18 @@ defmodule MintacoinWeb.AccountsController do
 
   defp retrieve_asset_and_blockchain(:error), do: {:error, :asset_not_found}
 
-  @spec retrieve_wallet(blockchain_id :: {:ok, map()} | {:error, error()}, address :: address()) ::
+  @spec retrieve_wallet(blockchain_id :: id(), address :: address()) ::
           {:ok, wallet()} | {:error, error()}
-  defp retrieve_wallet({:ok, %{blockchain_id: blockchain_id}}, address) do
+  defp retrieve_wallet(blockchain_id, address) do
     case Wallets.retrieve_by_account_address_and_blockchain_id(address, blockchain_id) do
       {:ok, %Wallet{} = wallet} -> {:ok, wallet}
       {:ok, nil} -> {:error, :wallet_not_found}
     end
   end
 
-  @spec process_trustline(
-          wallet :: {:ok, wallet()} | {:error, error()},
-          asset :: {:ok, map()},
-          signature :: signature()
-        ) :: {:ok, asset()} | {:error, error()}
-  defp process_trustline({:ok, %Wallet{} = wallet}, {:ok, %{asset: asset}}, signature) do
+  @spec process_trustline(wallet :: wallet(), asset :: asset(), signature :: signature()) ::
+          {:ok, asset()} | {:error, error()}
+  defp process_trustline(%Wallet{} = wallet, %Asset{} = asset, signature) do
     case Accounts.create_trustline(%{asset: asset, trustor_wallet: wallet, signature: signature}) do
       {:ok, %AssetHolder{asset_id: asset_id}} -> Assets.retrieve_by_id(asset_id)
       {:error, error} -> {:error, error}
@@ -150,4 +144,6 @@ defmodule MintacoinWeb.AccountsController do
     |> put_status(status)
     |> render(template, resource: resource)
   end
+
+  defp handle_response({:error, error}, _conn, _status, _template), do: {:error, error}
 end
